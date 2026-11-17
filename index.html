@@ -32,6 +32,7 @@ button:disabled{opacity:.4;cursor:default}
 .nav{width:56px;font-size:26px;background:none;color:var(--mute);border-radius:0}
 #selInfo{text-align:center;padding:4px 12px}
 #selName{font-size:22px;font-weight:700}
+#selSub{min-height:1.5em}
 #chips{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;scrollbar-width:thin}
 .chip{flex:none;min-width:40px;padding:6px 10px;border-radius:8px;background:var(--panel);font-size:14px;position:relative}
 .chip.cur{outline:2px solid var(--accent)}
@@ -203,9 +204,8 @@ const STR = {
   left: ['左圖', 'Left'], right: ['右圖', 'Right'], w: ['寬', 'W'], h: ['高', 'H'],
   rot: ['把手機橫放來玩：兩張地圖並排、格子更大', 'Rotate your phone to landscape: bigger, side-by-side boards'],
   lvName: ['第 {0} 關', 'Level {0}'],
-  sizes: ['左 {0}×{1}　右 {2}×{3}　', 'L {0}×{1} · R {2}×{3} · '],
   unsolvable: ['此關無解', 'Unsolvable'], minN: ['最少 {0} 步', 'Min {0} moves'],
-  myBest: ['　我的最佳 {0} 步', ' · My best {0}'], soFar: ['　已走 {0} 步', ' · {0} moves so far'],
+  myBest: ['我的最佳 {0} 步　', 'My best {0} · '], soFar: ['已走 {0} 步', '{0} moves so far'],
   delTitle: ['刪除關卡', 'Delete level'], delMsg: ['確定刪除「{0}」？無法復原。', 'Delete "{0}"? This cannot be undone.'], cancel: ['取消', 'Cancel'],
   copied: ['關卡代碼已複製，可貼給朋友「匯入」', 'Level code copied. Friends can paste it into Import.'],
   copyPrompt: ['複製以下關卡代碼：', 'Copy this level code:'], pastePrompt: ['貼上關卡代碼：', 'Paste a level code:'],
@@ -429,9 +429,11 @@ function renderSelect() {
   const lv = lvs[sel], rec = recs[lv.id], custom = lv.id[0] === 'c', ms = minSteps(lv);
   store.set('sel', lv.id);
   $('selName').textContent = (rec ? '✔ ' : '') + lv.name;
-  let sub = t('sizes', lv.L.w, lv.L.h, lv.R.w, lv.R.h) + (ms < 0 ? t('unsolvable') : t('minN', ms));
-  if (rec) sub += t('myBest', rec.best.length);
-  else if (progs[lv.id]) sub += t('soFar', progs[lv.id].length);
+  // 最少步數過關後才公布，沒過關前不提示
+  let sub = '';
+  if (rec) sub = t('myBest', rec.best.length) + t('minN', ms);
+  else if (ms < 0) sub = t('unsolvable');
+  else if (progs[lv.id]) sub = t('soFar', progs[lv.id].length);
   $('selSub').textContent = sub;
   $('btnPlay').textContent = t(progs[lv.id] ? 'cont' : (rec ? 'again' : 'play'));
   $('btnReplay').style.display = rec ? '' : 'none';
